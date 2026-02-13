@@ -1,3 +1,7 @@
+# Single stack: start/stop everything with: docker compose up -d | docker compose down
+# Project name "olo" isolates this stack from others (containers, network, volumes).
+name: olo
+
 services:
   olo-postgres:
     image: postgres:15
@@ -13,7 +17,7 @@ services:
     restart: unless-stopped
       
   elasticsearch:
-    container_name: elasticsearch
+    container_name: olo-elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION:-7.17.23}
     environment:
       - discovery.type=single-node
@@ -26,13 +30,13 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - elasticsearch-data:/usr/share/elasticsearch/data
+      - olo-elasticsearch-data:/usr/share/elasticsearch/data
     networks:
       - olo-net
     restart: unless-stopped
 
   kibana:
-    container_name: kibana
+    container_name: olo-kibana
     image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_VERSION:-7.17.23}
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
@@ -46,7 +50,7 @@ services:
       - olo-net
     restart: unless-stopped
   temporal:
-    container_name: temporal
+    container_name: olo-temporal
     image: temporalio/auto-setup:${TEMPORAL_VERSION:-1.22.4}
     environment:
       - DB=postgres12
@@ -69,7 +73,7 @@ services:
     restart: unless-stopped
 
   temporal-admin-tools:
-    container_name: temporal-admin-tools
+    container_name: olo-temporal-admin-tools
     image: temporalio/admin-tools:${TEMPORAL_ADMINTOOLS_VERSION:-1.22.4}
     depends_on:
       - temporal
@@ -83,7 +87,7 @@ services:
     restart: unless-stopped
 
   temporal-ui:
-    container_name: temporal-ui
+    container_name: olo-temporal-ui
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.22.2}
     depends_on:
       - temporal
@@ -96,6 +100,34 @@ services:
       - olo-net
     restart: unless-stopped
 
+  # ----------------------------
+  # Vector DB (Qdrant)
+  # ----------------------------
+  qdrant:
+    container_name: olo-qdrant
+    image: qdrant/qdrant:${QDRANT_VERSION:-v1.12.0}
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - olo-qdrant_data:/qdrant/storage
+    networks:
+      - olo-net
+    restart: unless-stopped
+
+  # ----------------------------
+  # OSS models (Ollama)
+  # ----------------------------
+  ollama:
+    container_name: olo-ollama
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - olo-ollama_data:/root/.ollama
+    networks:
+      - olo-net
+    restart: unless-stopped
 
   # ----------------------------
   # Control Plane (Spring Boot)
@@ -144,5 +176,6 @@ networks:
 # Volumes
 # ----------------------------
 volumes:
-  ollama_data:
-  elasticsearch-data:
+  olo-ollama_data:
+  olo-elasticsearch-data:
+  olo-qdrant_data:
