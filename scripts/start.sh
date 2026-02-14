@@ -13,7 +13,8 @@ until docker exec olo-ollama ollama list >/dev/null 2>&1; do
 done
 sleep 2
 
-OSS_MODELS="${OSS_MODELS:-mistral llama3.2}"
+# Multiple OSS models: Llama, Mistral, Phi, Gemma, Qwen (edit to add/remove)
+OSS_MODELS="${OSS_MODELS:-mistral llama3.2 phi3 gemma2:2b qwen2:1.5b}"
 echo "Checking OSS models (default: $OSS_MODELS)..."
 for model in $OSS_MODELS; do
   if ! docker exec olo-ollama ollama list 2>/dev/null | grep -qi "$model"; then

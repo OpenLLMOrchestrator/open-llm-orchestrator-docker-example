@@ -1,6 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
-set "OSS_MODELS=mistral llama3.2"
+REM Multiple OSS models: Llama, Mistral, Phi, Gemma, Qwen (edit to add/remove)
+set "OSS_MODELS=mistral llama3.2 phi3 gemma2:2b qwen2:1.5b"
 echo 🚀 Starting Open LLM Orchestrator stack...
 
 docker compose up -d

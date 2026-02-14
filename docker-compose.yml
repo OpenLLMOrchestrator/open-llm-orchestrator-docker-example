@@ -130,6 +130,51 @@ services:
     restart: unless-stopped
 
   # ----------------------------
+  # OpenAI OSS (LiteLLM proxy – OpenAI-compatible API over Ollama)
+  # ----------------------------
+  openai-oss:
+    container_name: olo-openai-oss
+    image: docker.litellm.ai/berriai/litellm:main-latest
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml"]
+    depends_on:
+      - ollama
+    networks:
+      - olo-net
+    restart: unless-stopped
+
+  # ----------------------------
+  # Redis + Redis Insight
+  # ----------------------------
+  redis:
+    container_name: olo-redis
+    image: redis:${REDIS_VERSION:-7-alpine}
+    ports:
+      - "6379:6379"
+    volumes:
+      - olo-redis_data:/data
+    networks:
+      - olo-net
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  redis-insight:
+    container_name: olo-redis-insight
+    image: redis/redisinsight:${REDIS_INSIGHT_VERSION:-latest}
+    ports:
+      - "5540:5540"
+    volumes:
+      - olo-redis-insight_data:/data
+    depends_on:
+      - redis
+    networks:
+      - olo-net
+    restart: unless-stopped
+
+  # ----------------------------
   # Control Plane (Spring Boot)
   # ----------------------------
 #  control-plane:
@@ -179,3 +224,5 @@ volumes:
   olo-ollama_data:
   olo-elasticsearch-data:
   olo-qdrant_data:
+  olo-redis_data:
+  olo-redis-insight_data:

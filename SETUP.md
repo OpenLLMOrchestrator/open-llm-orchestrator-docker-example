@@ -27,12 +27,15 @@ After setup you will have a local stack with:
 | **Temporal**    | Workflow engine            | Server: `localhost:7233`        |
 | **Temporal UI** | View workflows             | http://localhost:8080           |
 | **Ollama**      | Run open-source LLMs       | http://localhost:11434          |
+| **OpenAI OSS**  | OpenAI-compatible API (LiteLLM) | http://localhost:4000     |
 | **Qdrant**      | Vector database for RAG    | http://localhost:6333           |
+| **Redis**       | In-memory cache / store    | `localhost:6379`                 |
+| **Redis Insight** | Redis GUI & CLI           | http://localhost:5540           |
 | **PostgreSQL**  | Database for Temporal      | Internal only                   |
 | **Elasticsearch** | Search / indexing        | http://localhost:9200           |
 | **Kibana**      | Elasticsearch UI           | http://localhost:5601           |
 
-Default OSS models installed on first run: **Mistral** and **Llama 3.2**.
+Default OSS models installed on first run: **Mistral**, **Llama 3.2**, **Phi-3**, **Gemma 2 (2B)**, **Qwen2 (1.5B)**. All are exposed via the OpenAI OSS endpoint (LiteLLM) at http://localhost:4000.
 
 ---
 
@@ -112,7 +115,7 @@ The script will:
 - Check that Docker is installed and running.
 - Start all services with `docker compose up -d`.
 - Wait until Ollama is ready.
-- Download **Mistral** and **Llama 3.2** if they are not already present.
+- Download multiple OSS models (Mistral, Llama 3.2, Phi-3, Gemma 2, Qwen2) if not already present.
 
 The first run can take **several minutes** (downloading images and models). Later runs are much faster.
 
@@ -139,13 +142,21 @@ After the install script finishes:
 
 2. **Ollama models**  
    Open: **http://localhost:11434/api/tags**  
-   You should see a JSON list including `mistral` and `llama3.2`.
+   You should see a JSON list of installed models (e.g. mistral, llama3.2, phi3, gemma2:2b, qwen2:1.5b).
 
 3. **Qdrant**  
    Open: **http://localhost:6333/dashboard**  
    You should see the Qdrant UI (may be empty until you use the app).
 
-4. **Optional:**  
+4. **Redis Insight**  
+   Open: **http://localhost:5540**  
+   Add Redis connection: host `redis`, port `6379` (no password by default).
+
+5. **OpenAI OSS (LiteLLM)**  
+   Use **http://localhost:4000** as the API base with any OpenAI-compatible client.  
+   Models: `mistral`, `llama3.2`, `phi3`, `gemma2:2b`, `qwen2:1.5b`. No authentication required.
+
+6. **Optional:**  
    - Kibana: http://localhost:5601  
    - Elasticsearch: http://localhost:9200  
 
@@ -188,6 +199,18 @@ If these URLs load, the stack is running correctly.
 
 - **Change default models for the start script:**  
   Edit **`scripts\start.bat`** (Windows) or **`scripts\start.sh`** (Linux/macOS) and change the line that sets `OSS_MODELS` (e.g. add `phi3` or use `llama3` instead of `llama3.2`).
+
+**Using the OpenAI OSS endpoint (LiteLLM):**  
+Use base URL **http://localhost:4000** with the OpenAI SDK. Available models: `mistral`, `llama3.2`, `phi3`, `gemma2:2b`, `qwen2:1.5b`. Example (Python):
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:4000", api_key="not-needed")
+r = client.chat.completions.create(model="mistral", messages=[{"role": "user", "content": "Hello!"}])
+print(r.choices[0].message.content)
+```
+
+To add more OSS models: (1) add the model name to `OSS_MODELS` in **`scripts\start.bat`** (or `start.sh`) so it is pulled on start, and (2) add a matching entry in **`litellm/config.yaml`**, then restart the `openai-oss` container.
 
 ---
 

@@ -1,0 +1,33 @@
+# OpenAI-compatible API (OpenAI OSS) - routes to Ollama models in this stack.
+# Use base URL: http://localhost:4000 (or http://openai-oss:4000 from other containers)
+# Multiple OSS models; pull via start.bat if missing. Add more entries to expose new Ollama models.
+
+model_list:
+  - model_name: mistral
+    litellm_params:
+      model: ollama/mistral
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: llama3.2
+    litellm_params:
+      model: ollama/llama3.2
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: phi3
+    litellm_params:
+      model: ollama/phi3
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: gemma2:2b
+    litellm_params:
+      model: ollama/gemma2:2b
+      api_base: http://ollama:11434
+      api_key: ollama
+  - model_name: qwen2:1.5b
+    litellm_params:
+      model: ollama/qwen2:1.5b
+      api_base: http://ollama:11434
+      api_key: ollama
+
+general_settings:
+  # No master_key = no authentication required (open local API)
